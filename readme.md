@@ -25,3 +25,6 @@ When finished a new folder named `tars` will appear containing the relevant pack
 You can use the `--target` flag to specify a different target folder.
 
 Use the `-i` flag use the currently installed node modules instead of the ones in the package-lock.json file. 
+
+
+for more information use `packNodeModules --help`

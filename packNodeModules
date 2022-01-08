@@ -15,9 +15,12 @@ const getRecursiveDependencies = (list) => {
 };
 
 
-const getPackageListFromLock = (packageLock) => {
+const getPackageListFromLock = (packageLock, filter) => {
     const dependencies = getRecursiveDependencies(JSON.parse(packageLock).dependencies);
-    return [...new Set(dependencies)];
+    const unique = [...new Set(dependencies)];
+    if (!filter) return unique;
+    const regex = new RegExp(filter, 'g');
+    return unique.filter(dependence=>!dependence.match(regex));
 };
 
 
@@ -25,10 +28,17 @@ async function packageDependencies(lisOfDependencies, target = 'tars') {
     exec(`mkdir ${target}`);
     try{
         const installedPackages = lisOfDependencies.map(dependence => asyncExec(`npm pack ${dependence} --pack-destination ./${target}`));
-        console.log('packed the following packages:\n',
-            (await Promise.allSettled(installedPackages))
-                .map(package=>package.value)
-        )
+        const output = {
+            fulfilled:[],
+            rejected:[]
+        };
+        (await Promise.allSettled(installedPackages))
+            .map(package=>output[package.status].push(package.value));
+        console.log('packed the following packages:\n',output.fulfilled);
+        if(output.rejected.length){
+            console.log('fail to pack the following packages:\n',output.rejected);
+        }
+
     }catch(e){
         console.error(e);
     }
@@ -49,7 +59,7 @@ async function main(argv) {
     const path = argv.path ? `${argv.path}/` : ''
     const lockFlag = argv['use-installed'] ? '' : '--package-lock-only';
     const packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
-    const packageList = getPackageListFromLock(packageLock);
+    const packageList = getPackageListFromLock(packageLock, argv.filter);
     packageDependencies(packageList, argv.target);
 }
 
@@ -65,5 +75,9 @@ yargs(hideBin(process.argv))
         alias: 'i',
         type: 'boolean',
         description: 'will use installed packages from node modules instead of package-lock.json file.'
-    })
+    }).option('filter', {
+    alias: 'f',
+    type: 'string',
+    description: 'use regex to filter out unwanted packages. for example: \npackNodeModules -f ^@mock\\/\n will remove packages starting with @mock/'
+})
     .parse()
