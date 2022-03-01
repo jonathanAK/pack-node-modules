@@ -8,7 +8,7 @@ Make sure both package.json and package-lock.json exist in your project.
 ## Running
 Open a shell in the project you wish to pack and type:  
 `
-npx packNodeModules
+npx pack-node-modules
 `  
 
 When finished a new folder named `tars` will appear containing the relevant packages.
