@@ -34,7 +34,7 @@ async function packageDependencies(lisOfDependencies, target = 'tars') {
             rejected:[]
         };
         (await Promise.allSettled(installedPackages))
-            .map(package=>output[package.status].push(package.value));
+            .map(curr_package=>output[curr_package.status].push(curr_package.value));
         console.log('packed the following packages:\n',output.fulfilled);
         if(output.rejected.length){
             console.log('fail to pack the following packages:\n',output.rejected);
@@ -65,7 +65,7 @@ async function main(argv) {
 }
 
 yargs(hideBin(process.argv))
-    .command('$0', 'packNodeModules all dependencies for project', (yargs) => {
+    .command('$0', 'pack all dependencies for project', (yargs) => {
         return yargs
     }, main)
     .option('target', {
@@ -79,6 +79,6 @@ yargs(hideBin(process.argv))
     }).option('filter', {
     alias: 'f',
     type: 'string',
-    description: 'use regex to filter out unwanted packages. for example: \npackNodeModules -f ^@mock\\/\n will remove packages starting with @mock/'
+    description: 'use regex to filter out unwanted packages. for example: \nnpx pack-modules -f ^@mock\\/\n will remove packages starting with @mock/'
 })
     .parse()
