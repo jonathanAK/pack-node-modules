@@ -12,14 +12,16 @@ Make sure both package.json and package-lock.json exist in your project.
 `
 npm install
 `
-3. Add the folder to your systems PATH environment variables.
-4. Restart your computer.
+3. install the project:   
+`
+npm install -g .
+`
 
 ## Running
-1. Open a shell in the project you with to pack and type:  
+1. Open a shell in the project you wish to pack and type:  
 `
-packNodeModules
-`
+npx packNodeModules
+`  
 When finished a new folder named `tars` will appear containing the relevant packages.
 
 You can use the `--target` flag to specify a different target folder.
