@@ -59,7 +59,13 @@ async function asyncExec(command) {
 async function main(argv) {
     const path = argv.path ? `${argv.path}/` : ''
     const lockFlag = argv['use-installed'] ? '' : '--package-lock-only';
-    const packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
+    let packageLock;
+    try{
+        packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
+    }catch{
+        await asyncExec(`npm i --package-lock-only`);
+        packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
+    }
     const packageList = getPackageListFromLock(packageLock, argv.filter);
     packageDependencies(packageList, argv.target);
 }
