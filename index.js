@@ -71,7 +71,7 @@ async function getPackageLock(path, lockFlag){
 async function main(argv) {
     const path = argv.path ? `${argv.path}/` : ''
     const lockFlag = argv['use-installed'] ? '' : '--package-lock-only';
-    const packageLock = getPackageLock(path, lockFlag);
+    const packageLock = await getPackageLock(path, lockFlag);
     const packageList = getPackageListFromLock(packageLock, argv.filter);
     packageDependencies(packageList, argv.target);
 }
