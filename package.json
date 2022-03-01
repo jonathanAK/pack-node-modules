@@ -1,5 +1,5 @@
 {
-  "name": "pack-node-modules",
+  "name": "pack-modules",
   "version": "0.0.1",
   "description": "",
   "main": "packNodeModules",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "pack-node-modules": "./bin/packNodeModules.js"
+    "pack-modules": "./bin/packNodeModules.js"
   },
   "author": "",
   "license": "ISC",
