@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 const {exec} = require('child_process');
-const yargs = require('yargs/yargs')
-const {hideBin} = require('yargs/helpers')
+const fs = require('fs');
+const path = require('path');
+const yargs = require('yargs/yargs');
+const {hideBin} = require('yargs/helpers');
 
 const getRecursiveDependencies = (list) => {
     const mainDependencies = Object.keys(list);
@@ -25,6 +27,7 @@ const getPackageListFromLock = (packageLock, filter) => {
 
 
 async function packageDependencies(lisOfDependencies, target = 'tars') {
+    const installed = [];
     exec(`mkdir ${target}`);
     try{
         const installedPackages = lisOfDependencies.map(dependence => asyncExec(`npm pack ${dependence} --pack-destination ./${target}`));
@@ -33,7 +36,10 @@ async function packageDependencies(lisOfDependencies, target = 'tars') {
             rejected:[]
         };
         (await Promise.allSettled(installedPackages))
-            .map(package=>output[package.status].push(package.value));
+            .forEach((package, index)=> {
+                output[package.status].push(package.value.slice(0, -1));
+                installed.push(lisOfDependencies[index]);
+            });
         console.log('packed the following packages:\n',output.fulfilled);
         if(output.rejected.length){
             console.log('fail to pack the following packages:\n',output.rejected);
@@ -42,6 +48,7 @@ async function packageDependencies(lisOfDependencies, target = 'tars') {
     }catch(e){
         console.error(e);
     }
+    return installed;
 }
 
 async function asyncExec(command) {
@@ -55,12 +62,34 @@ async function asyncExec(command) {
     });
 }
 
+async function writeOutputFile(packages, target = 'tars'){
+    try {
+        fs.writeFileSync(`./${target}/output.txt`, JSON.stringify(packages));
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+function readExistingFile(target = 'tars'){
+    try {
+        console.log(process.cwd());
+        console.log(__dirname);
+        return fs.readFileSync(path.resolve(__dirname, `${target}`));
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
+
 async function main(argv) {
     const path = argv.path ? `${argv.path}/` : ''
     const lockFlag = argv['use-installed'] ? '' : '--package-lock-only';
     const packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
+    const excludeList = argv.existing_list ? readExistingFile(argv.existing_list) : [];
     const packageList = getPackageListFromLock(packageLock, argv.filter);
-    packageDependencies(packageList, argv.target);
+    const installedPackages = await packageDependencies(packageList, argv.target);
+    writeOutputFile(installedPackages, argv.target);
+    console.log(excludeList);
 }
 
 yargs(hideBin(process.argv))
@@ -71,6 +100,10 @@ yargs(hideBin(process.argv))
         alias: 't',
         type: 'string',
         description: 'target folder for tars'
+    }).option('existing_list', {
+        alias: 'e',
+        type: 'string',
+        description: 'path to file containing a list of existing packages that don\'t need to be packaged. Output file will include these files'
     }).option('use-installed', {
         alias: 'i',
         type: 'boolean',
