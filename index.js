@@ -63,7 +63,7 @@ async function main(argv) {
     try{
         packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
     }catch{
-        await asyncExec(`npm i --package-lock-only`);
+        await asyncExec(`npm i --package-lock-only --no-audit --force`);
         packageLock = await asyncExec(`npm ls ${path} --all ${lockFlag} --json`);
     }
     const packageList = getPackageListFromLock(packageLock, argv.filter);
